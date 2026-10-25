@@ -1,6 +1,6 @@
 # Zen Browser for Nix
 
-This is a flake for the Zen browser. Originally forked from the unmaintained
+This is a flake for the Zen browser. Originally forked from
 [youwen5/zen-browser-flake](https://github.com/youwen5/zen-browser-flake),
 but with several fixes.
 GitHub Actions is configured to automatically check for updates daily.
