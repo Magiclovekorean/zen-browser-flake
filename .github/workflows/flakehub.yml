@@ -14,7 +14,7 @@ jobs:
       - uses: "DeterminateSystems/nix-installer-action@main"
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
-          name: "youwen5/zen-browser"
+          name: "magiclovekorean/zen-browser"
           rolling: true
           visibility: "public"
           include-output-paths: true
