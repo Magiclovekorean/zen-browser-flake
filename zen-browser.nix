@@ -31,12 +31,46 @@ let
   # wrapFirefox replaces the unwrapped package's distribution/policies.json, so
   # carry its policy set forward explicitly. Otherwise DisableAppUpdate and
   # config.zen.policies are silently discarded.
-  policies = (zen-browser-unwrapped.policies or { }) // extraPolicies;
+  basePolicies = zen-browser-unwrapped.policies or { };
 
-  # wrapFirefox shallow-merges extraPolicies over the ExtensionSettings it
-  # generates for nixExtensions. An ExtensionSettings policy would therefore
-  # silently replace the generated allow/block rules.
-  policiesConflict = nixExtensions != null && (policies ? ExtensionSettings);
+  # wrapFirefox generates these ExtensionSettings for nixExtensions and then
+  # shallow-merges extraPolicies over them. Recreate the generated settings so
+  # user policies can be merged without discarding the nixExtensions entries.
+  nixExtensionSettings =
+    if nixExtensions == null then
+      { }
+    else
+      {
+        "*" = {
+          blocked_install_message = "You can't have manual extension mixed with nix extensions";
+          installation_mode = "blocked";
+        };
+      }
+      // builtins.listToAttrs (
+        map (extension: {
+          name =
+            extension.extid
+              or (throw "nixExtensions has an invalid entry. Missing extid attribute. Please use fetchFirefoxAddon");
+          value = {
+            installation_mode = "allowed";
+          };
+        }) nixExtensions
+      );
+
+  policies =
+    basePolicies
+    // extraPolicies
+    // (
+      if nixExtensions == null then
+        { }
+      else
+        {
+          ExtensionSettings =
+            nixExtensionSettings
+            // (basePolicies.ExtensionSettings or { })
+            // (extraPolicies.ExtensionSettings or { });
+        }
+    );
 
   wrapped = wrapFirefox browserForWrapper {
     pname = "zen-browser";
@@ -58,18 +92,11 @@ let
     extraPolicies = policies;
   };
 in
-if policiesConflict then
-  throw ''
-    zen-browser: nixExtensions cannot be combined with an ExtensionSettings
-    policy in extraPolicies or config.zen.policies. wrapFirefox would replace
-    the nixExtensions-generated ExtensionSettings with the supplied policy.
-  ''
-else
-  wrapped
-  // {
-    # Expose the policy set forwarded to wrapFirefox for inspection and tests.
+wrapped
+// {
+  # Expose the policy set forwarded to wrapFirefox for inspection and tests.
+  inherit policies;
+  passthru = (wrapped.passthru or { }) // {
     inherit policies;
-    passthru = (wrapped.passthru or { }) // {
-      inherit policies;
-    };
-  }
+  };
+}
