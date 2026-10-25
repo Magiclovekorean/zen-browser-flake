@@ -9,11 +9,11 @@ jobs:
   update:
     name: Update flake inputs and browser
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT }}
 
       - name: Check flake inputs
         uses: DeterminateSystems/flake-checker-action@v4
