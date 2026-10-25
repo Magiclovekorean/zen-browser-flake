@@ -27,6 +27,61 @@
         packages
       );
 
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          pkgsWithPolicies = import nixpkgs {
+            inherit system;
+            config.zen.policies.DisableTelemetry = true;
+          };
+          zen-browser = (import ./. { inherit pkgs system; }).default;
+          configured =
+            (import ./. {
+              pkgs = pkgsWithPolicies;
+              inherit system;
+            }).default;
+          overridden = zen-browser.override {
+            extraPolicies = {
+              DisableTelemetry = true;
+            };
+          };
+          fakeExtension =
+            pkgs.runCommand "fake-extension" { } ''
+              mkdir -p $out
+              touch $out/fake@example.com.xpi
+            ''
+            // {
+              name = "fake-extension";
+              extid = "fake@example.com";
+            };
+          mixed = zen-browser.override {
+            nixExtensions = [ fakeExtension ];
+            extraPolicies = {
+              ExtensionSettings = {
+                "extra@example.com" = {
+                  installation_mode = "force_installed";
+                  install_url = "https://example.com/extra.xpi";
+                };
+              };
+            };
+          };
+        in
+        {
+          policies =
+            assert zen-browser.policies.DisableAppUpdate == true;
+            assert configured.policies.DisableTelemetry == true;
+            assert overridden.policies.DisableAppUpdate == true;
+            assert overridden.policies.DisableTelemetry == true;
+            assert mixed.policies.ExtensionSettings."*".installation_mode == "blocked";
+            assert mixed.policies.ExtensionSettings."fake@example.com".installation_mode == "allowed";
+            assert mixed.policies.ExtensionSettings."extra@example.com".installation_mode == "force_installed";
+            pkgs.runCommand "zen-browser-policies-check" { } ''
+              touch $out
+            '';
+        }
+      );
+
       apps = forAllSystems (
         system:
         let
