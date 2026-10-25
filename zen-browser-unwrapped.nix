@@ -19,17 +19,12 @@
   firefoxVersion,
   url,
   hash,
-  extraPolicies ? { },
   ...
 }:
 let
-  # wrapFirefox replaces distribution/policies.json, so the wrapped package
-  # reads this set through passthru rather than relying on the unwrapped file.
   policies = {
     DisableAppUpdate = true;
-  }
-  // (config.zen.policies or { })
-  // extraPolicies;
+  } // config.zen.policies or { };
 
   policiesJson = writeText "firefox-policies.json" (builtins.toJSON { inherit policies; });
 in
@@ -87,12 +82,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   passthru = {
-    inherit
-      gtk3
-      firefoxVersion
-      policies
-      policiesJson
-      ;
+    inherit gtk3 firefoxVersion;
 
     libName = "zen-${version}";
     binaryName = finalAttrs.meta.mainProgram;
