@@ -27,6 +27,38 @@
         packages
       );
 
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          pkgsWithPolicies = import nixpkgs {
+            inherit system;
+            config.zen.policies.DisableTelemetry = true;
+          };
+          zen-browser = (import ./. { inherit pkgs system; }).default;
+          configured =
+            (import ./. {
+              pkgs = pkgsWithPolicies;
+              inherit system;
+            }).default;
+          overridden = zen-browser.override {
+            extraPolicies = {
+              DisableTelemetry = true;
+            };
+          };
+        in
+        {
+          policies =
+            assert zen-browser.policies.DisableAppUpdate == true;
+            assert configured.policies.DisableTelemetry == true;
+            assert overridden.policies.DisableAppUpdate == true;
+            assert overridden.policies.DisableTelemetry == true;
+            pkgs.runCommand "zen-browser-policies-check" { } ''
+              touch $out
+            '';
+        }
+      );
+
       apps = forAllSystems (
         system:
         let
