@@ -1,8 +1,9 @@
 # Zen Browser for Nix
 
 This is a flake for the Zen browser. Originally forked from the unmaintained
-[MarceColl/zen-browser-flake](https://github.com/MarceColl/zen-browser-flake),
-but heavily modified. GitHub Actions is configured to automatically check for updates daily.
+[youwen5/zen-browser-flake](https://github.com/youwen5/zen-browser-flake),
+but with several fixes.
+GitHub Actions is configured to automatically check for updates daily.
 
 The primary difference between this flake and most of the other forks
 available is it has more correct packaging that closely mirrors how Firefox is packaged in nixpkgs,
