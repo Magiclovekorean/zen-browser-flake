@@ -84,13 +84,14 @@ nixExtensions = [
 ];
 ```
 
-`nixExtensions` and an `ExtensionSettings` policy in `extraPolicies` or
-`config.zen.policies` cannot be combined: the wrapper merges `extraPolicies`
-over the settings it generates for `nixExtensions`, so the generated allow and
-block rules would be lost. The package throws an error when both are set.
-Avoid adding an `ExtensionSettings` policy through `extraPoliciesFiles` when
-using `nixExtensions` as well; those files are merged with lower precedence and
-cannot replace the generated settings, but extra entries are unnecessary.
+`nixExtensions` can be combined with an `ExtensionSettings` policy in
+`extraPolicies` or `config.zen.policies`. The generated nixExtensions settings
+(the `*` block and one `allowed` entry per nix extension) are merged with the
+policy settings; later entries win. This lets you use `nixExtensions` for some
+add-ons and policy-managed installation for others.
+
+`extraPoliciesFiles` are merged with lower precedence, so they can add entries
+that are not already present but cannot replace generated or inline settings.
 
 ### Other wrapper options
 
