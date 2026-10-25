@@ -14,6 +14,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          # Prefer a PAT so the update commit triggers the build and FlakeHub
+          # workflows; pushes made with GITHUB_TOKEN cannot start new runs.
+          token: ${{ secrets.PAT || github.token }}
 
       - name: Check flake inputs
         uses: DeterminateSystems/flake-checker-action@v4
