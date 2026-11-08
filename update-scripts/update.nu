@@ -92,14 +92,28 @@ def get_asset_hash [asset: record]: nothing -> string {
 }
 
 def assert_asset_available [url: string]: nothing -> nothing {
-  let response = try {
-    http head --full --max-time 30sec $url
-  } catch { |err|
-    error make { msg: $"Failed to check ($url), aborting: ($err.msg)" }
-  }
+  let max_attempts = 5
+  let attempt = 0
 
-  if $response.status != 200 {
-    error make { msg: $"Release asset does not resolve (HTTP ($response.status)): ($url)" }
+  loop {
+    let response = try {
+      http head --full --max-time 30sec $url
+    } catch { |err|
+      { status: 0, error: $err.msg }
+    }
+
+    if $response.status == 200 {
+      return
+    }
+
+    if $attempt >= ($max_attempts - 1) {
+      error make { msg: $"Release asset does not resolve (HTTP ($response.status)): ($url)" }
+    }
+
+    $attempt = $attempt + 1
+    # Zen's GitHub release assets can briefly return transient 502/429/5xx
+    # while the download is still propagating.
+    sleep $"($attempt * 5)sec"
   }
 }
 
