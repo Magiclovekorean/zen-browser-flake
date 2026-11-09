@@ -93,7 +93,7 @@ def get_asset_hash [asset: record]: nothing -> string {
 
 def assert_asset_available [url: string]: nothing -> nothing {
   let max_attempts = 5
-  let attempt = 0
+  mut attempt = 0
 
   loop {
     let response = try {
