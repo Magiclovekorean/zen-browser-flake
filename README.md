@@ -117,7 +117,7 @@ To use, add it to the relevant NixOS configuration flake inputs:
 ```nix
 inputs = {
   # ...
-  zen-browser.url = "github:youwen5/zen-browser-flake";
+  zen-browser.url = "github:Magiclovekorean/zen-browser-flake";
 
   # optional, but recommended if you closely follow NixOS unstable so it shares
   # system libraries, and improves startup time
@@ -152,7 +152,7 @@ packages
 
 The easiest way is to use the CLI imperatively:
 
-`nix profile install github:youwen5/zen-browser-flake`
+`nix profile install github:Magiclovekorean/zen-browser-flake`
 
 If you're on NixOS and/or home-manager, you should install it in your system or
 home configuration.
@@ -170,7 +170,7 @@ If you don't want to use flakes, you can add it like:
 ```nix
 environment.systemPackages = 
   let
-    zen-browser = import (builtins.fetchTarball "https://github.com/youwen5/zen-browser-flake/archive/master.tar.gz") {
+    zen-browser = import (builtins.fetchTarball "https://github.com/Magiclovekorean/zen-browser-flake/archive/master.tar.gz") {
       inherit pkgs;
     };
   in
