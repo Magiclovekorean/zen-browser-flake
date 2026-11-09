@@ -19,7 +19,7 @@ def github_headers []: nothing -> record {
 def get_releases [repo: string]: nothing -> list {
   let response = try {
     http get --headers (github_headers) --full $"https://api.github.com/repos/($repo)/releases?per_page=30"
-  } catch { |err|
+  } catch {|err|
     error make { msg: $"Failed to fetch releases for ($repo), aborting: ($err.msg)" }
   }
 
@@ -58,7 +58,7 @@ def get_firefox_version [tag: string]: nothing -> string {
   let url = $"https://raw.githubusercontent.com/zen-browser/desktop/($tag)/surfer.json"
   let response = try {
     http get --full $url
-  } catch { |err|
+  } catch {|err|
     error make { msg: $"Failed to fetch Firefox version for ($tag), aborting: ($err.msg)" }
   }
 
@@ -76,7 +76,7 @@ def get_firefox_version [tag: string]: nothing -> string {
 def get_nix_hash [url: string]: nothing -> string {
   try {
     nix store prefetch-file --hash-type sha256 --json $url | from json | get hash
-  } catch { |err|
+  } catch {|err|
     error make { msg: $"Failed to prefetch ($url), aborting: ($err.msg)" }
   }
 }
@@ -93,12 +93,11 @@ def get_asset_hash [asset: record]: nothing -> string {
 
 def assert_asset_available [url: string]: nothing -> nothing {
   let max_attempts = 5
-  mut attempt = 0
 
-  loop {
+  for attempt in 1..$max_attempts {
     let response = try {
       http head --full --max-time 30sec $url
-    } catch { |err|
+    } catch {|err|
       { status: 0, error: $err.msg }
     }
 
@@ -106,11 +105,10 @@ def assert_asset_available [url: string]: nothing -> nothing {
       return
     }
 
-    if $attempt >= ($max_attempts - 1) {
+    if $attempt == $max_attempts {
       error make { msg: $"Release asset does not resolve (HTTP ($response.status)): ($url)" }
     }
 
-    $attempt = $attempt + 1
     # Zen's GitHub release assets can briefly return transient 502/429/5xx
     # while the download is still propagating.
     sleep $"($attempt * 5)sec"
