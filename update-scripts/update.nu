@@ -111,7 +111,7 @@ def assert_asset_available [url: string]: nothing -> nothing {
 
     # Zen's GitHub release assets can briefly return transient 502/429/5xx
     # while the download is still propagating.
-    sleep $"($attempt * 5)sec"
+    sleep ($attempt * 5sec)
   }
 }
 
